@@ -45,8 +45,7 @@ private:
     const long TIME_INDEX = 0x3c12c0;
     const long TIME_BLOCK_SIZE = 0x170;
 
-
-
+    bool isCorrectSaveFile();
 };
 
 
