@@ -12,7 +12,6 @@ class Reader {
 
 public:
     explicit Reader(const char *fileName);
-
     ~Reader();
 
     struct SlotDataHeaderStructure {
@@ -31,7 +30,7 @@ public:
 //        SlotDataHeaderStructure slot_data;
     };
 
-    void doStuff();
+    void printSaveFileStats();
     int getAmoundOfSlots();
     int getRealAmountOfSlots();
 

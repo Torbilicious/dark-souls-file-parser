@@ -5,26 +5,9 @@
 #include <cstdlib>
 #include <vector>
 #include <iostream>
+#include <wchar.h>
 #include "Reader.h"
 
-template <typename T>
-T swap_endian(T u)
-{
-    static_assert (CHAR_BIT == 8, "CHAR_BIT != 8");
-
-    union
-    {
-        T u;
-        unsigned char u8[sizeof(T)];
-    } source, dest;
-
-    source.u = u;
-
-    for (size_t k = 0; k < sizeof(T); k++)
-        dest.u8[k] = source.u8[sizeof(T) - k - 1];
-
-    return dest.u;
-}
 
 Reader::Reader(const char *fileName) {
     this->file = std::fopen(fileName, "r");
@@ -71,11 +54,8 @@ int Reader::getRealAmountOfSlots() {
     return realSlots;
 }
 
-void Reader::doStuff() {
+void Reader::printSaveFileStats() {
     for (int slotIndex = 0; slotIndex < getRealAmountOfSlots(); ++slotIndex) {
-
-
-//        auto slotIndex = 0;
         auto offset = BLOCK_INDEX + BLOCK_SIZE * slotIndex;
         auto timeOffset = TIME_INDEX + TIME_BLOCK_SIZE * slotIndex;
 
@@ -83,24 +63,15 @@ void Reader::doStuff() {
         signed int deaths;
         std::fread(&deaths, sizeof deaths, 1, file);
 
+
         //    {'offset': 0x100, 'type': 'c', 'field': 'name', 'size': 14 * 2},
+        //FIXME
+        short stringlength = 14 * 2;
+        wchar_t name[stringlength];
+        fseek(file, offset + 0x100, SEEK_SET);
+        std::fread(&name[0], sizeof(wchar_t), 1, file);
 
-
-//        fseek(file, offset + 0x100, SEEK_SET);
-//        std::vector<wchar_t> sName(14 * 2); // char is trivally copyable
-//        std::fread(&sName, sizeof sName[0], 14 * 2, file);
-
-
-
-
-
-        short stringlength = 14*2;
-        wchar_t sName[stringlength]; //Or you can use malloc() / new instead.
-        fseek(file , offset +0x100, SEEK_SET);
-        std::fread(&sName[0], sizeof(wchar_t), 1, file);
-
-
-        printf("sName:   %s", swap_endian(sName));
+        wprintf(L"name:   %ls", name);
         printf("\n");
         printf("deaths: %d\n", deaths);
     }
