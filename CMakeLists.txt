@@ -3,4 +3,11 @@ project(dark_souls_file_parser)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(dark_souls_file_parser main.cpp Reader.cpp Reader.h)
+set(dir ${CMAKE_CURRENT_SOURCE_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${dir}/lib")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${dir}/lib")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${dir}/bin")
+
+list(APPEND SOURCES dark_souls_file_parser src/main.cpp src/Reader.cpp src/Reader.h)
+
+add_executable(dark_souls_file_parser ${SOURCES})
