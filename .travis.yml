@@ -1,5 +1,8 @@
 language: cpp
 
+# ships with CMake 3.12.4
+dist: xenial
+
 compiler:
   - gcc
 
