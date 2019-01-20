@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 	"unicode/utf16"
 	"unicode/utf8"
 )
@@ -42,11 +43,23 @@ func main() {
 	initFile()
 	defer file.Close()
 
-	players := getPlayers()
+	running := true
+	counter := 0
+	maxTurns := 1
+	for running {
+		start := time.Now()
 
-	for _, player := range players {
-		log.Printf("name: %s", player.name)
-		log.Printf("deaths: %d", player.deaths)
+		players := getPlayers()
+		for _, player := range players {
+			log.Printf("name:   %s", player.name)
+			log.Printf("deaths: %d", player.deaths)
+		}
+
+		log.Printf("took %v\n", time.Since(start))
+
+		reloadData()
+		counter++
+		running = counter < maxTurns
 	}
 }
 
