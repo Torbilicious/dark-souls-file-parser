@@ -1,19 +1,5 @@
-language: cpp
-compiler: gcc
-os: linux
-dist: xenial
-
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - g++-8
-
+language: go
+go:
+  - 1.11
 script:
-  - export CC=gcc-8
-  - export CXX=g++-8
-  - mkdir build
-  - cd build
-  - cmake ..
-  - make
+  - go build
