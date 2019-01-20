@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/binary"
-	"fmt"
 	"gopkg.in/restruct.v1"
 	"io"
 	"io/ioutil"
@@ -46,8 +45,8 @@ func main() {
 	players := getPlayers()
 
 	for _, player := range players {
-		fmt.Printf("name: %s\n", player.name)
-		fmt.Printf("deaths: %d\n\n", player.deaths)
+		log.Printf("name: %s", player.name)
+		log.Printf("deaths: %d", player.deaths)
 	}
 }
 
@@ -70,16 +69,16 @@ func isFileHeaderOk() bool {
 	bytes = readNextBytes(8)
 	version := string(bytes)
 
-	fmt.Printf("File header check:\n")
-	fmt.Printf("fileType: %s\n", fileType)
-	fmt.Printf("version:  %s\n\n\n", version)
+	log.Printf("File header check:")
+	log.Printf("fileType: %s", fileType)
+	log.Printf("version:  %s", version)
 
 	return fileType == "BND4" && version == "00000001"
 }
 
 func getPlayers() []Player {
 	amount := getAmountOfSlots()
-	fmt.Printf("Amount of slots: %d\n\n", amount)
+	log.Printf("Amount of slots: %d", amount)
 
 	players := make([]Player, 0)
 
