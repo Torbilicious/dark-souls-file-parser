@@ -52,7 +52,7 @@ func main() {
 
 func initFile() {
 	file, _ = os.Open("resources/DRAKS0005.sl2")
-	data, _ = ioutil.ReadAll(file)
+	reloadData()
 
 	headerOk := isFileHeaderOk()
 	if !headerOk {
@@ -76,9 +76,13 @@ func isFileHeaderOk() bool {
 	return fileType == "BND4" && version == "00000001"
 }
 
+func reloadData() {
+	file.Seek(0, io.SeekStart)
+	data, _ = ioutil.ReadAll(file)
+}
+
 func getPlayers() []Player {
 	amount := getAmountOfSlots()
-	log.Printf("Amount of slots: %d", amount)
 
 	players := make([]Player, 0)
 
