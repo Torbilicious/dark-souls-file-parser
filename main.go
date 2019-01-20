@@ -20,7 +20,7 @@ var (
 	NameOffset          = 0x100
 	DeathsOffset        = 0x1f128
 	file                *os.File
-	data                [] byte
+	data                []byte
 )
 
 type SlotHeader struct {
@@ -45,17 +45,35 @@ func main() {
 		offset := BlockIndex + BlockSize*slotIndex
 		deaths := readInt(offset+DeathsOffset, 4)
 
-		bytes := make([]byte, 26)
-		realOffset := offset+NameOffset
+		bytes := make([]byte, 24)
+		realOffset := offset + NameOffset
 
 		fmt.Printf("offset: %d\n", realOffset)
 
 		restruct.Unpack(data[realOffset:], binary.LittleEndian, &bytes)
+
+		bytes = sliceBytesToCorrectLength(bytes)
+
 		name := UTF16BytesToString(bytes, binary.LittleEndian)
 
 		fmt.Printf("name: %s\n", name)
-		fmt.Printf("deaths: %d\n", deaths)
+		fmt.Printf("deaths: %d\n\n", deaths)
 	}
+}
+
+func sliceBytesToCorrectLength(bytes []byte) []byte {
+	out := make([]byte, 0)
+
+	for i := 0; i < len(bytes); i += 2 {
+		if bytes[i] == 0 && bytes[i+1] == 0 {
+			return out
+		}
+
+		out = append(out, bytes[i])
+		out = append(out, bytes[i+1])
+	}
+
+	return out
 }
 
 func UTF16BytesToString(b []byte, o binary.ByteOrder) string {
