@@ -33,13 +33,29 @@ type SlotHeader struct {
 	EndOfBlock        uint32
 }
 
+type Player struct {
+	name   string
+	deaths int
+}
+
 func main() {
 	file, _ = os.Open("resources/DRAKS0005.sl2")
 	defer file.Close()
 	data, _ = ioutil.ReadAll(file)
 
+	players := getPlayers()
+
+	for _, player := range players {
+		fmt.Printf("name: %s\n", player.name)
+		fmt.Printf("deaths: %d\n\n", player.deaths)
+	}
+}
+
+func getPlayers() []Player {
 	amount := getAmountOfSlots()
 	fmt.Printf("Amount of slots: %d\n\n", amount)
+
+	players := make([]Player, 0)
 
 	for slotIndex := 0; slotIndex < amount; slotIndex++ {
 		offset := BlockIndex + BlockSize*slotIndex
@@ -48,17 +64,16 @@ func main() {
 		bytes := make([]byte, 24)
 		realOffset := offset + NameOffset
 
-		fmt.Printf("offset: %d\n", realOffset)
-
 		restruct.Unpack(data[realOffset:], binary.LittleEndian, &bytes)
 
 		bytes = sliceBytesToCorrectLength(bytes)
 
 		name := UTF16BytesToString(bytes, binary.LittleEndian)
 
-		fmt.Printf("name: %s\n", name)
-		fmt.Printf("deaths: %d\n\n", deaths)
+		players = append(players, Player{deaths: deaths, name: name})
 	}
+
+	return players
 }
 
 func sliceBytesToCorrectLength(bytes []byte) []byte {
