@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"gopkg.in/restruct.v1"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -39,9 +40,8 @@ type Player struct {
 }
 
 func main() {
-	file, _ = os.Open("resources/DRAKS0005.sl2")
+	initFile()
 	defer file.Close()
-	data, _ = ioutil.ReadAll(file)
 
 	players := getPlayers()
 
@@ -49,6 +49,32 @@ func main() {
 		fmt.Printf("name: %s\n", player.name)
 		fmt.Printf("deaths: %d\n\n", player.deaths)
 	}
+}
+
+func initFile() {
+	file, _ = os.Open("resources/DRAKS0005.sl2")
+	data, _ = ioutil.ReadAll(file)
+
+	headerOk := isFileHeaderOk()
+	if !headerOk {
+		log.Fatalln("Header check not ok!")
+	}
+}
+
+func isFileHeaderOk() bool {
+	file.Seek(0, io.SeekStart)
+	bytes := readNextBytes(4)
+	fileType := string(bytes)
+
+	file.Seek(0x18, io.SeekStart)
+	bytes = readNextBytes(8)
+	version := string(bytes)
+
+	fmt.Printf("File header check:\n")
+	fmt.Printf("fileType: %s\n", fileType)
+	fmt.Printf("version:  %s\n\n\n", version)
+
+	return fileType == "BND4" && version == "00000001"
 }
 
 func getPlayers() []Player {
@@ -106,7 +132,7 @@ func readInt(offset int, length int) int {
 	return int(binary.LittleEndian.Uint32(data[offset : offset+length]))
 }
 
-func readNextBytes(file *os.File, number int) []byte {
+func readNextBytes(number int) []byte {
 	bytes := make([]byte, number)
 
 	_, err := file.Read(bytes)
@@ -126,8 +152,8 @@ func getAmountOfSlots() int {
 	var counter = 0
 	for _, header := range headers {
 
-		file.Seek(int64(header.BlockStartOffset)+int64(BlockDataOffset), 0)
-		inByte := readNextBytes(file, 1)
+		file.Seek(int64(header.BlockStartOffset)+int64(BlockDataOffset), io.SeekStart)
+		inByte := readNextBytes(1)
 
 		if inByte[0] != 0 {
 			counter++
