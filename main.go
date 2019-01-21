@@ -64,13 +64,15 @@ func main() {
 }
 
 func initFile() {
-	file, _ = os.Open("resources/DRAKS0005.sl2")
+	//file, _ = os.Open("C:\\Users\\Torbe\\Documents\\nbgi\\darksouls\\torbilicious\\draks0005.sl2")
+	//file, _ = os.Open("C:\\Users\\Torbe\\Documents\\nbgi\\darksouls\\gestirnmoewe302\\draks0005.sl2")
+	file, _ = os.Open("resources/DRAKS0005-aes-encrypted.sl2")
 	reloadData()
 
-	headerOk := isFileHeaderOk()
-	if !headerOk {
-		log.Fatalln("Header check not ok!")
-	}
+	//headerOk := isFileHeaderOk()
+	//if !headerOk {
+	//	log.Fatalln("Header check not ok!")
+	//}
 }
 
 func isFileHeaderOk() bool {
@@ -95,11 +97,29 @@ func reloadData() {
 }
 
 func getPlayers() []Player {
-	amount := getAmountOfSlots()
+	//amount := getAmountOfSlots()
+	amount := 11
 
 	players := make([]Player, 0)
 
 	for slotIndex := 0; slotIndex < amount; slotIndex++ {
+		//https://github.com/pawREP/Dark-Souls-Remastered-SL2-Unpacker
+
+		begin := 704 + slotIndex*0x060030
+		end := begin + 0x060020
+		slotBytes := data[begin:end]
+
+		var aesKey = []byte{0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10}
+
+		result := decrypt(aesKey, slotBytes)
+
+		before := data[:begin]
+		endOfData := data[end:]
+
+		data = before
+		data = append(data, result...)
+		data = append(data, endOfData...)
+
 		offset := BlockIndex + BlockSize*slotIndex
 		deaths := readInt(offset+DeathsOffset, 4)
 
@@ -112,10 +132,28 @@ func getPlayers() []Player {
 
 		name := UTF16BytesToString(bytes, binary.LittleEndian)
 
-		players = append(players, Player{deaths: deaths, name: name})
+		player := Player{deaths: deaths, name: name}
+		players = append(players, player)
+
+		log.Printf("name:   %s", player.name)
+		log.Printf("deaths: %d", player.deaths)
 	}
 
 	return players
+}
+
+func AppendByte(slice []byte, data ...byte) []byte {
+	m := len(slice)
+	n := m + len(data)
+	if n > cap(slice) { // if necessary, reallocate
+		// allocate double what's needed, for future growth.
+		newSlice := make([]byte, (n+1)*2)
+		copy(newSlice, slice)
+		slice = newSlice
+	}
+	slice = slice[0:n]
+	copy(slice[m:n], data)
+	return slice
 }
 
 func sliceBytesToCorrectLength(bytes []byte) []byte {
