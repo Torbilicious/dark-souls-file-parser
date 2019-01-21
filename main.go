@@ -20,7 +20,6 @@ var (
 	SlotsMetadataOffset = 0x40
 	NameOffset          = 0x100
 	DeathsOffset        = 0x1f128
-	file                *os.File
 	data                []byte
 )
 
@@ -40,46 +39,37 @@ type Player struct {
 }
 
 func main() {
-	initFile()
+	file := initFile()
 	defer file.Close()
 
-	running := true
-	counter := 0
-	maxTurns := 1
-	for running {
-		start := time.Now()
+	start := time.Now()
 
-		players := getPlayers()
-		for _, player := range players {
-			log.Printf("name:   %s", player.name)
-			log.Printf("deaths: %d", player.deaths)
-		}
-
-		log.Printf("took %v\n", time.Since(start))
-
-		reloadData()
-		counter++
-		running = counter < maxTurns
+	players := getPlayers()
+	for _, player := range players {
+		log.Printf("name:   %s", player.name)
+		log.Printf("deaths: %d", player.deaths)
 	}
+
+	log.Printf("took %v\n", time.Since(start))
 }
 
-func initFile() {
+func initFile() (file *os.File) {
 	file, _ = os.Open("resources/DRAKS0005.sl2")
-	reloadData()
+	reloadData(file)
 
 	headerOk := isFileHeaderOk()
 	if !headerOk {
 		log.Fatalln("Header check not ok!")
 	}
+
+	return file
 }
 
 func isFileHeaderOk() bool {
-	file.Seek(0, io.SeekStart)
-	bytes := readNextBytes(4)
+	bytes := readNextBytes(0x0, 4)
 	fileType := string(bytes)
 
-	file.Seek(0x18, io.SeekStart)
-	bytes = readNextBytes(8)
+	bytes = readNextBytes(0x18, 8)
 	version := string(bytes)
 
 	log.Printf("File header check:")
@@ -89,7 +79,7 @@ func isFileHeaderOk() bool {
 	return fileType == "BND4" && version == "00000001"
 }
 
-func reloadData() {
+func reloadData(file *os.File) {
 	file.Seek(0, io.SeekStart)
 	data, _ = ioutil.ReadAll(file)
 }
@@ -148,15 +138,8 @@ func readInt(offset int, length int) int {
 	return int(binary.LittleEndian.Uint32(data[offset : offset+length]))
 }
 
-func readNextBytes(number int) []byte {
-	bytes := make([]byte, number)
-
-	_, err := file.Read(bytes)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return bytes
+func readNextBytes(offset int, number int) []byte {
+	return data[offset : offset+number]
 }
 
 func getAmountOfSlots() int {
@@ -168,8 +151,8 @@ func getAmountOfSlots() int {
 	var counter = 0
 	for _, header := range headers {
 
-		file.Seek(int64(header.BlockStartOffset)+int64(BlockDataOffset), io.SeekStart)
-		inByte := readNextBytes(1)
+		offset := int(header.BlockStartOffset) + BlockDataOffset
+		inByte := readNextBytes(offset, 1)
 
 		if inByte[0] != 0 {
 			counter++
