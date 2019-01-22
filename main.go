@@ -86,7 +86,9 @@ func getAmountOfSlots() int {
 		offset := int(header.BlockStartOffset) + BlockDataOffset
 		inByte := readNextBytes(offset, 1)
 
-		if inByte[0] != 0 {
+		if inByte[0] == 0 {
+			return counter
+		} else {
 			counter++
 		}
 	}
