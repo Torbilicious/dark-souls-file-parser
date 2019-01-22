@@ -34,7 +34,7 @@ type Player struct {
 }
 
 func main() {
-	file, _data := initFile()
+	file, _data := initFile("resources/DRAKS0005.sl2")
 	defer file.Close()
 
 	data = _data

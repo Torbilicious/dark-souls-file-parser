@@ -11,8 +11,8 @@ var (
 	file *os.File
 )
 
-func initFile() (*os.File, []byte) {
-	file, _ = os.Open("resources/DRAKS0005.sl2")
+func initFile(fileName string) (*os.File, []byte) {
+	file, _ = os.Open(fileName)
 	data = loadData()
 
 	headerOk := isFileHeaderOk()
