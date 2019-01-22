@@ -3,13 +3,8 @@ package main
 import (
 	"encoding/binary"
 	"gopkg.in/restruct.v1"
-	"io"
-	"io/ioutil"
 	"log"
-	"os"
 	"time"
-	"unicode/utf16"
-	"unicode/utf8"
 )
 
 var (
@@ -39,8 +34,10 @@ type Player struct {
 }
 
 func main() {
-	file := initFile()
+	file, _data := initFile()
 	defer file.Close()
+
+	data = _data
 
 	start := time.Now()
 
@@ -51,37 +48,6 @@ func main() {
 	}
 
 	log.Printf("took %v\n", time.Since(start))
-}
-
-func initFile() (file *os.File) {
-	file, _ = os.Open("resources/DRAKS0005.sl2")
-	reloadData(file)
-
-	headerOk := isFileHeaderOk()
-	if !headerOk {
-		log.Fatalln("Header check not ok!")
-	}
-
-	return file
-}
-
-func isFileHeaderOk() bool {
-	bytes := readNextBytes(0x0, 4)
-	fileType := string(bytes)
-
-	bytes = readNextBytes(0x18, 8)
-	version := string(bytes)
-
-	log.Printf("File header check:")
-	log.Printf("fileType: %s", fileType)
-	log.Printf("version:  %s", version)
-
-	return fileType == "BND4" && version == "00000001"
-}
-
-func reloadData(file *os.File) {
-	file.Seek(0, io.SeekStart)
-	data, _ = ioutil.ReadAll(file)
 }
 
 func getPlayers() []Player {
@@ -106,40 +72,6 @@ func getPlayers() []Player {
 	}
 
 	return players
-}
-
-func sliceBytesToCorrectLength(bytes []byte) []byte {
-	out := make([]byte, 0)
-
-	for i := 0; i < len(bytes); i += 2 {
-		if bytes[i] == 0 && bytes[i+1] == 0 {
-			return out
-		}
-
-		out = append(out, bytes[i])
-		out = append(out, bytes[i+1])
-	}
-
-	return out
-}
-
-func UTF16BytesToString(b []byte, o binary.ByteOrder) string {
-	utf := make([]uint16, (len(b)+(2-1))/2)
-	for i := 0; i+(2-1) < len(b); i += 2 {
-		utf[i/2] = o.Uint16(b[i:])
-	}
-	if len(b)/2 < len(utf) {
-		utf[len(utf)-1] = utf8.RuneError
-	}
-	return string(utf16.Decode(utf))
-}
-
-func readInt(offset int, length int) int {
-	return int(binary.LittleEndian.Uint32(data[offset : offset+length]))
-}
-
-func readNextBytes(offset int, number int) []byte {
-	return data[offset : offset+number]
 }
 
 func getAmountOfSlots() int {
